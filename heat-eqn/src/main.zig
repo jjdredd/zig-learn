@@ -54,11 +54,13 @@ fn neumannBoundaryCondition(x: f64, y: f64) f64 {
     return 0;
 }
 
-fn discreetNeumannBc(a: [][]f64, i: u32, j: u32, domainSize: [2]f64, h: [2]f64, D: f64, component: u8) f64 {
+fn discreetNeumannBc(a: [][]f64, i: u32, j: u32, domainSize: [2]f64, h: [2]f64,
+                     component: u8) f64 {
     // the x-component
     if (component == "x") {
         return signBc(i, 0, domainSize[0])
             * 2 * (neumannBoundaryCondition(x, y) / h[0] + (a_1[i][j] - a_1[i + 1][j])/(h[0]*h[0]));
+        // the y-component
     } else if (component == "y") {
         return signBc(j, 0, domainSize[1])
             * 2 * (neumannBoundaryCondition(x, y) / h[1] + (a_1[i][j] - a_1[i][j + 1])/(h[1]*h[1]));
@@ -75,25 +77,48 @@ fn laplacianFdNeumannBc(a_1: [][]f64, a_2: [][]f64, domainSize: [2]f64, h: [2]f6
     var xBc: f64 = 0;
     var xBc: f64 = 0;
 
+    // y-boundaries, x = 0, x = N
     i = 0;
     j = 0;
-    x = indexToCoord(i, h[0]);
-    y = indexToCoord(j, h[1]);
-    xBc = 
-                                         ;
-    yBc = 0;
-    a_2[0][0] = D * (xBc + yBc);
-
-    while (j < a_1[i].len - 1) : (j += 1) {
-        xBc = 
+    xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
+    yBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'y');
+    a_2[i][j] = D * (xBc + yBc);
+    j = 1;
+    while (j < a_1[i].len - 2) : (j += 1) {
+        xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
+        var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j])
+            / (h[1] * h[1]);
+        a_2[i][j] = D * (xBc + laplacianY);
     }
-    i: u32 = 0;
-    j: u32 = 0;
+    j = a_1[i].len - 1;
+    xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
+    yBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'y');
+    a_2[i][j] = D * (xBc + yBc);
+
+    i = a_1.len - 1;
+    j = 0
+    xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
+    yBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'y');
+    a_2[i][j] = D * (xBc + yBc);
+    while (j < a_1[i].len - 1) : (j += 1) {
+        xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
+        var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) / (h[1] * h[1]);
+        a_2[i][j] = D * (xBc + laplacianY);
+    }
+    j = a_1[i].len - 1;
+    xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
+    yBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'y');
+    a_2[i][j] = D * (xBc + yBc);
+
+    // x - boundaries
+
     while (i < a_1.len - 1) : (i += 1) {
         var j: u32 = 0;
         while (j < a_1[i].len - 1) : (j += 1) {
-            var laplacianX = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) / h[0];
-            var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) / h[0];
+            var laplacianX = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) 
+                / (h[0] * h[0]);
+            var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j])
+                / (h[1] * h[1]);
             a_2[i][j] = D * (laplacianX + laplacianY);
         }
     }
@@ -104,8 +129,10 @@ fn laplacianFd(a_1: [][]f64, a_2: [][]f64, h: [2]f64, D: f64) f64 {
     while (i < a_1.len - 1) : (i += 1) {
         var j: u32 = 1;
         while (j < a_1[i].len - 1) : (j += 1) {
-            var laplacianX = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) / h[0];
-            var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) / h[1];
+            var laplacianX = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j])
+                / (h[0] * h[0]);
+            var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j]) 
+                / (h[1] * h[1]);
             a_2[i][j] = D * (laplacianX + laplacianY);
         }
     }
