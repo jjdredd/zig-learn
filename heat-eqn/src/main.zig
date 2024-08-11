@@ -86,7 +86,7 @@ fn laplacianFdNeumannBc(a_1: [][]f64, a_2: [][]f64, domainSize: [2]f64, h: [2]f6
     j = 1;
     while (j < a_1[i].len - 2) : (j += 1) {
         xBc = discreetNeumannBc(a_1, i, j, domainSize, h, 'x');
-        var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j])
+        var laplacianY = (a_1[i][j + 1] + a_1[i][j - 1] - 2 * a_1[i][j])
             / (h[1] * h[1]);
         a_2[i][j] = D * (xBc + laplacianY);
     }
@@ -120,6 +120,43 @@ fn laplacianFdNeumannBc(a_1: [][]f64, a_2: [][]f64, domainSize: [2]f64, h: [2]f6
             var laplacianY = (a_1[i + 1][j] + a_1[i - 1][j] - 2 * a_1[i][j])
                 / (h[1] * h[1]);
             a_2[i][j] = D * (laplacianX + laplacianY);
+        }
+    }
+}
+
+fn dirichletBoundaryCondition(x: f64, y: f64) f64 {
+    _ = x;
+    _ = y;
+    return 0;
+}
+
+fn dirichletFdNeumannBc(a_1: [][]f64, a_2: [][]f64, domainSize: [2]f64, h: [2]f64, D: f64) f64 {
+    var i : u32 = 0;
+    var j : u32 = 0;
+
+    // fill out i = 0 and i = N
+    while (j < a_2[i].len - 1) : (j += 1) {
+        a_2[i][j] = 0
+    }
+
+    i = a_2.len - 1;
+    j = 0;
+    while (j < a_2[i].len - 1) : (j += 1) {
+        a_2[i][j] = 0
+    }
+
+    // fill out j = 0, j = N
+    j = 0;
+    while (j < a_2[i].len - 1) : (j += 1) {
+        a_2[i][j] = 0
+    }
+
+
+
+    while (i < a_1.len - 1) : (i += 1) {
+        var j : u32 = 0;
+        while (j < a_1[i].len - 1) : (j += 1) {
+            a_2[i][j] = 
         }
     }
 }
